@@ -1,0 +1,35 @@
+{
+  "stylua": {
+    "repo": "JohnnyMorganz/StyLua",
+    "version": "v2.6.0",
+    "artifact": "stylua-{version}-win-arm64.zip",
+    "purl_prefix": "pkg:generic/johnnymorganz/stylua",
+    "win_x64_file": "stylua-windows-x86_64.zip",
+    "win_x64_url": "https://github.com/JohnnyMorganz/StyLua/releases/download/{version}/stylua-windows-x86_64.zip"
+  },
+  "shfmt": {
+    "repo": "mvdan/sh",
+    "version": "v3.14.1",
+    "artifact": "shfmt-{version}-win-arm64.zip",
+    "purl_prefix": "pkg:generic/mvdan/sh",
+    "win_x64_file": "shfmt.exe",
+    "win_x64_url": "https://github.com/mvdan/sh/releases/download/{version}/shfmt_{version}_windows_amd64.exe"
+  },
+  "lua-language-server": {
+    "repo": "LuaLS/lua-language-server",
+    "version": "3.19.2",
+    "artifact": "lua-language-server-{version}-win32-arm64.zip",
+    "purl_prefix": "pkg:generic/LuaLS/lua-language-server",
+    "win_x64_file": "lua-language-server-{version}-win32-x64.zip",
+    "win_x64_url": "https://github.com/LuaLS/lua-language-server/releases/download/{version}/lua-language-server-{version}-win32-x64.zip"
+  },
+  "marksman": {
+    "repo": "artempyanykh/marksman",
+    "version": "2026-02-08",
+    "artifact": "marksman-{version}-win-arm64.zip",
+    "purl_prefix": "pkg:generic/artempyanykh/marksman",
+    "win_x64_file": "marksman.exe",
+    "win_x64_url": "https://github.com/artempyanykh/marksman/releases/download/{version}/marksman.exe",
+    "requires": "dotnet"
+  }
+}

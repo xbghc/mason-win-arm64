@@ -1,0 +1,110 @@
+name: Sync Upstream & Release Native ARM64 Registry
+
+on:
+  schedule:
+    # 每天 02:00 UTC（北京时间 10:00）自动检查上游是否有新版本
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: "强制全量重新编译所有包（即使版本号未变）"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mason-win-arm64-release
+  cancel-in-progress: false
+
+jobs:
+  sync-and-build:
+    name: Sync & Build (windows-11-arm)
+    runs-on: windows-11-arm
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check upstream releases & reuse unchanged artifacts
+        id: sync
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $extra = if ("${{ inputs.force_rebuild }}" -eq "true") { "--force-rebuild" } else { "--download-reusable" }
+          python scripts/sync-upstream.py --repo "${{ github.repository }}" $extra
+
+      - name: Set up Go (for shfmt)
+        if: steps.sync.outputs.needs_publish == 'true' && contains(steps.sync.outputs.needs_build, 'shfmt')
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Set up Rust (for stylua)
+        if: steps.sync.outputs.needs_publish == 'true' && contains(steps.sync.outputs.needs_build, 'stylua')
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-pc-windows-msvc
+
+      - name: Cache Rust build artifacts
+        if: steps.sync.outputs.needs_publish == 'true' && contains(steps.sync.outputs.needs_build, 'stylua')
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ".build/stylua -> target"
+
+      - name: Set up .NET SDK (for marksman)
+        if: steps.sync.outputs.needs_publish == 'true' && contains(steps.sync.outputs.needs_build, 'marksman')
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Fetch sources for packages requiring build
+        if: steps.sync.outputs.needs_publish == 'true'
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/fetch-sources.ps1 -NoVendor
+
+      - name: Build native win_arm64 binaries & verify PE 0xAA64
+        if: steps.sync.outputs.needs_publish == 'true'
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/build-all-native.ps1
+
+      - name: Pack Mason registry & checksums
+        if: steps.sync.outputs.needs_publish == 'true'
+        shell: pwsh
+        run: |
+          python scripts/pack-registry.py `
+            --repo "${{ github.repository }}" `
+            --tag "${{ steps.sync.outputs.release_tag }}"
+
+      - name: Commit updated versions.json and package manifests
+        if: steps.sync.outputs.needs_publish == 'true'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add versions.json packages/
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            $summary = "${{ steps.sync.outputs.updated_summary }}"
+            $msg = if ($summary) { "chore(release): sync upstream ($summary)" } else { "chore(release): publish ${{ steps.sync.outputs.release_tag }}" }
+            git commit -m $msg
+            git push origin HEAD:main
+          }
+
+      - name: Publish GitHub Release
+        if: steps.sync.outputs.needs_publish == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $sha = (git rev-parse HEAD).Trim()
+          $zips = Get-ChildItem "dist/*.zip" | ForEach-Object { $_.FullName }
+          gh release create "${{ steps.sync.outputs.release_tag }}" `
+            @zips "dist/checksums.txt" `
+            --target $sha `
+            --title "${{ steps.sync.outputs.release_tag }}" `
+            --notes-file "dist/release-notes.md"

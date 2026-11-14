@@ -18,153 +18,117 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def build_specs(repo: str, tag: str, dist_dir: Path) -> list[dict]:
+def make_download_entry(cfg: dict, base_url: str) -> tuple[str, dict]:
+    ver = cfg["version"]
+    arm64_zip = cfg["artifact"].format(version=ver)
+    x64_file = cfg["win_x64_file"].format(version=ver)
+    x64_url = cfg["win_x64_url"].format(version=ver)
+    return arm64_zip, {
+        "id": f"{cfg['purl_prefix']}@{ver}",
+        "download": [
+            {
+                "target": "win_arm64",
+                "files": {
+                    arm64_zip: f"{base_url}/{arm64_zip}",
+                },
+            },
+            {
+                "target": "win_x64",
+                "files": {
+                    x64_file: x64_url,
+                },
+            },
+        ],
+    }
+
+
+def build_specs(repo: str, tag: str, dist_dir: Path, versions: dict[str, dict]) -> list[dict]:
     base_url = f"https://github.com/{repo}/releases/download/{tag}"
     specs: list[dict] = []
 
-    # 1. stylua (v2.6.0)
-    stylua_zip = "stylua-v2.6.0-win-arm64.zip"
-    if (dist_dir / stylua_zip).is_file():
-        specs.append({
-            "schema": "registry+v1",
-            "name": "stylua",
-            "description": "An opinionated Lua code formatter (native Windows ARM64 build).",
-            "homepage": "https://github.com/JohnnyMorganz/StyLua",
-            "licenses": ["MPL-2.0"],
-            "languages": ["Lua", "Luau"],
-            "categories": ["Formatter", "LSP"],
-            "source": {
-                "id": "pkg:generic/johnnymorganz/stylua@v2.6.0",
-                "download": [
-                    {
-                        "target": "win_arm64",
-                        "files": {
-                            stylua_zip: f"{base_url}/{stylua_zip}",
-                        },
-                    },
-                    {
-                        "target": "win_x64",
-                        "files": {
-                            "stylua-windows-x86_64.zip": "https://github.com/JohnnyMorganz/StyLua/releases/download/v2.6.0/stylua-windows-x86_64.zip",
-                        },
-                    },
-                ],
-            },
-            "bin": {
-                "stylua": "stylua.exe",
-            },
-            "neovim": {
-                "lspconfig": "stylua",
-            },
-        })
+    # 1. stylua
+    if "stylua" in versions:
+        stylua_zip, stylua_src = make_download_entry(versions["stylua"], base_url)
+        if (dist_dir / stylua_zip).is_file():
+            specs.append({
+                "schema": "registry+v1",
+                "name": "stylua",
+                "description": "An opinionated Lua code formatter (native Windows ARM64 build).",
+                "homepage": "https://github.com/JohnnyMorganz/StyLua",
+                "licenses": ["MPL-2.0"],
+                "languages": ["Lua", "Luau"],
+                "categories": ["Formatter", "LSP"],
+                "source": stylua_src,
+                "bin": {
+                    "stylua": "stylua.exe",
+                },
+                "neovim": {
+                    "lspconfig": "stylua",
+                },
+            })
 
-    # 2. shfmt (v3.14.1)
-    shfmt_zip = "shfmt-v3.14.1-win-arm64.zip"
-    if (dist_dir / shfmt_zip).is_file():
-        specs.append({
-            "schema": "registry+v1",
-            "name": "shfmt",
-            "description": "A shell formatter (sh/bash/zsh/mksh) (native Windows ARM64 build).",
-            "homepage": "https://github.com/mvdan/sh",
-            "licenses": ["BSD-3-Clause"],
-            "languages": ["Bash", "Mksh", "Shell", "Zsh"],
-            "categories": ["Formatter"],
-            "source": {
-                "id": "pkg:generic/mvdan/sh@v3.14.1",
-                "download": [
-                    {
-                        "target": "win_arm64",
-                        "files": {
-                            shfmt_zip: f"{base_url}/{shfmt_zip}",
-                        },
-                    },
-                    {
-                        "target": "win_x64",
-                        "files": {
-                            "shfmt.exe": "https://github.com/mvdan/sh/releases/download/v3.14.1/shfmt_v3.14.1_windows_amd64.exe",
-                        },
-                    },
-                ],
-            },
-            "bin": {
-                "shfmt": "shfmt.exe",
-            },
-        })
+    # 2. shfmt
+    if "shfmt" in versions:
+        shfmt_zip, shfmt_src = make_download_entry(versions["shfmt"], base_url)
+        if (dist_dir / shfmt_zip).is_file():
+            specs.append({
+                "schema": "registry+v1",
+                "name": "shfmt",
+                "description": "A shell formatter (sh/bash/zsh/mksh) (native Windows ARM64 build).",
+                "homepage": "https://github.com/mvdan/sh",
+                "licenses": ["BSD-3-Clause"],
+                "languages": ["Bash", "Mksh", "Shell", "Zsh"],
+                "categories": ["Formatter"],
+                "source": shfmt_src,
+                "bin": {
+                    "shfmt": "shfmt.exe",
+                },
+            })
 
-    # 3. lua-language-server (3.19.2)
-    luals_zip = "lua-language-server-3.19.2-win32-arm64.zip"
-    if (dist_dir / luals_zip).is_file():
-        specs.append({
-            "schema": "registry+v1",
-            "name": "lua-language-server",
-            "description": "A language server that offers Lua language support (native Windows ARM64 build).",
-            "homepage": "https://github.com/LuaLS/lua-language-server",
-            "licenses": ["MIT"],
-            "languages": ["Lua"],
-            "categories": ["LSP"],
-            "source": {
-                "id": "pkg:generic/LuaLS/lua-language-server@3.19.2",
-                "download": [
-                    {
-                        "target": "win_arm64",
-                        "files": {
-                            luals_zip: f"{base_url}/{luals_zip}",
-                        },
-                    },
-                    {
-                        "target": "win_x64",
-                        "files": {
-                            "lua-language-server-3.19.2-win32-x64.zip": "https://github.com/LuaLS/lua-language-server/releases/download/3.19.2/lua-language-server-3.19.2-win32-x64.zip",
-                        },
-                    },
-                ],
-            },
-            "schemas": {
-                "lsp": "vscode:https://raw.githubusercontent.com/LuaLS/vscode-lua/master/package.json",
-            },
-            "bin": {
-                "lua-language-server": "bin/lua-language-server.exe",
-            },
-            "neovim": {
-                "lspconfig": "lua_ls",
-            },
-        })
+    # 3. lua-language-server
+    if "lua-language-server" in versions:
+        luals_zip, luals_src = make_download_entry(versions["lua-language-server"], base_url)
+        if (dist_dir / luals_zip).is_file():
+            specs.append({
+                "schema": "registry+v1",
+                "name": "lua-language-server",
+                "description": "A language server that offers Lua language support (native Windows ARM64 build).",
+                "homepage": "https://github.com/LuaLS/lua-language-server",
+                "licenses": ["MIT"],
+                "languages": ["Lua"],
+                "categories": ["LSP"],
+                "source": luals_src,
+                "schemas": {
+                    "lsp": "vscode:https://raw.githubusercontent.com/LuaLS/vscode-lua/master/package.json",
+                },
+                "bin": {
+                    "lua-language-server": "bin/lua-language-server.exe",
+                },
+                "neovim": {
+                    "lspconfig": "lua_ls",
+                },
+            })
 
-    # 4. marksman (2026-02-08)
-    marksman_zip = "marksman-2026-02-08-win-arm64.zip"
-    if (dist_dir / marksman_zip).is_file():
-        specs.append({
-            "schema": "registry+v1",
-            "name": "marksman",
-            "description": "Markdown LSP server providing completion, cross-references, diagnostics, and more (native Windows ARM64 build).",
-            "homepage": "https://github.com/artempyanykh/marksman",
-            "licenses": ["MIT"],
-            "languages": ["Markdown"],
-            "categories": ["LSP"],
-            "source": {
-                "id": "pkg:generic/artempyanykh/marksman@2026-02-08",
-                "download": [
-                    {
-                        "target": "win_arm64",
-                        "files": {
-                            marksman_zip: f"{base_url}/{marksman_zip}",
-                        },
-                    },
-                    {
-                        "target": "win_x64",
-                        "files": {
-                            "marksman.exe": "https://github.com/artempyanykh/marksman/releases/download/2026-02-08/marksman.exe",
-                        },
-                    },
-                ],
-            },
-            "bin": {
-                "marksman": "marksman.exe",
-            },
-            "neovim": {
-                "lspconfig": "marksman",
-            },
-        })
+    # 4. marksman
+    if "marksman" in versions:
+        marksman_zip, marksman_src = make_download_entry(versions["marksman"], base_url)
+        if (dist_dir / marksman_zip).is_file():
+            specs.append({
+                "schema": "registry+v1",
+                "name": "marksman",
+                "description": "Markdown LSP server providing completion, cross-references, diagnostics, and more (native Windows ARM64 build).",
+                "homepage": "https://github.com/artempyanykh/marksman",
+                "licenses": ["MIT"],
+                "languages": ["Markdown"],
+                "categories": ["LSP"],
+                "source": marksman_src,
+                "bin": {
+                    "marksman": "marksman.exe",
+                },
+                "neovim": {
+                    "lspconfig": "marksman",
+                },
+            })
 
     return specs
 
@@ -179,10 +143,11 @@ def main() -> None:
     root = Path(args.root)
     dist_dir = root / "dist"
     pkgs_dir = root / "packages"
+    versions: dict[str, dict] = json.loads((root / "versions.json").read_text(encoding="utf-8"))
     dist_dir.mkdir(parents=True, exist_ok=True)
     pkgs_dir.mkdir(parents=True, exist_ok=True)
 
-    specs = build_specs(args.repo, args.tag, dist_dir)
+    specs = build_specs(args.repo, args.tag, dist_dir, versions)
     if not specs:
         raise SystemExit("No built artifacts found in dist/!")
 
@@ -201,9 +166,16 @@ def main() -> None:
     with zipfile.ZipFile(reg_zip_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("registry.json", reg_bytes)
 
+    expected_zips = {
+        cfg["artifact"].format(version=cfg["version"])
+        for cfg in versions.values()
+    }
     checksum_lines: list[str] = []
     for artifact in sorted(dist_dir.iterdir(), key=lambda p: p.name):
-        if artifact.is_file() and artifact.name != "checksums.txt":
+        if artifact.is_file() and (
+            artifact.name in expected_zips
+            or artifact.name in {"registry.json", "registry.json.zip"}
+        ):
             checksum_lines.append(f"{sha256_file(artifact)}  {artifact.name}")
 
     with (dist_dir / "checksums.txt").open("w", encoding="utf-8", newline="\n") as f:
