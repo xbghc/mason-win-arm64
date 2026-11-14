@@ -1,0 +1,40 @@
+{
+  "schema": "registry+v1",
+  "name": "stylua",
+  "description": "An opinionated Lua code formatter (native Windows ARM64 build).",
+  "homepage": "https://github.com/JohnnyMorganz/StyLua",
+  "licenses": [
+    "MPL-2.0"
+  ],
+  "languages": [
+    "Lua",
+    "Luau"
+  ],
+  "categories": [
+    "Formatter",
+    "LSP"
+  ],
+  "source": {
+    "id": "pkg:generic/johnnymorganz/stylua@v2.6.0",
+    "download": [
+      {
+        "target": "win_arm64",
+        "files": {
+          "stylua-v2.6.0-win-arm64.zip": "https://github.com/xbghc/mason-win-arm64/releases/download/2026-11-14/stylua-v2.6.0-win-arm64.zip"
+        }
+      },
+      {
+        "target": "win_x64",
+        "files": {
+          "stylua-windows-x86_64.zip": "https://github.com/JohnnyMorganz/StyLua/releases/download/v2.6.0/stylua-windows-x86_64.zip"
+        }
+      }
+    ]
+  },
+  "bin": {
+    "stylua": "stylua.exe"
+  },
+  "neovim": {
+    "lspconfig": "stylua"
+  }
+}

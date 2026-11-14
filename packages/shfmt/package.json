@@ -1,0 +1,38 @@
+{
+  "schema": "registry+v1",
+  "name": "shfmt",
+  "description": "A shell formatter (sh/bash/zsh/mksh) (native Windows ARM64 build).",
+  "homepage": "https://github.com/mvdan/sh",
+  "licenses": [
+    "BSD-3-Clause"
+  ],
+  "languages": [
+    "Bash",
+    "Mksh",
+    "Shell",
+    "Zsh"
+  ],
+  "categories": [
+    "Formatter"
+  ],
+  "source": {
+    "id": "pkg:generic/mvdan/sh@v3.14.1",
+    "download": [
+      {
+        "target": "win_arm64",
+        "files": {
+          "shfmt-v3.14.1-win-arm64.zip": "https://github.com/xbghc/mason-win-arm64/releases/download/2026-11-14/shfmt-v3.14.1-win-arm64.zip"
+        }
+      },
+      {
+        "target": "win_x64",
+        "files": {
+          "shfmt.exe": "https://github.com/mvdan/sh/releases/download/v3.14.1/shfmt_v3.14.1_windows_amd64.exe"
+        }
+      }
+    ]
+  },
+  "bin": {
+    "shfmt": "shfmt.exe"
+  }
+}
