@@ -21,7 +21,7 @@
       {
         "target": "win_arm64",
         "files": {
-          "shfmt-v3.14.1-win-arm64.zip": "https://github.com/xbghc/mason-win-arm64/releases/download/2026-11-14/shfmt-v3.14.1-win-arm64.zip"
+          "shfmt-v3.14.1-win-arm64.zip": "https://github.com/xbghc/mason-win-arm64/releases/download/2026-11-15/shfmt-v3.14.1-win-arm64.zip"
         }
       },
       {

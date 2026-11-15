@@ -20,7 +20,7 @@
       {
         "target": "win_arm64",
         "files": {
-          "stylua-v2.6.0-win-arm64.zip": "https://github.com/xbghc/mason-win-arm64/releases/download/2026-11-14/stylua-v2.6.0-win-arm64.zip"
+          "stylua-v2.6.0-win-arm64.zip": "https://github.com/xbghc/mason-win-arm64/releases/download/2026-11-15/stylua-v2.6.0-win-arm64.zip"
         }
       },
       {

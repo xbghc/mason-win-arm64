@@ -1,0 +1,38 @@
+{
+  "schema": "registry+v1",
+  "name": "marksman",
+  "description": "Markdown LSP server providing completion, cross-references, diagnostics, and more (native Windows ARM64 build).",
+  "homepage": "https://github.com/artempyanykh/marksman",
+  "licenses": [
+    "MIT"
+  ],
+  "languages": [
+    "Markdown"
+  ],
+  "categories": [
+    "LSP"
+  ],
+  "source": {
+    "id": "pkg:generic/artempyanykh/marksman@2026-02-08",
+    "download": [
+      {
+        "target": "win_arm64",
+        "files": {
+          "marksman-2026-02-08-win-arm64.zip": "https://github.com/xbghc/mason-win-arm64/releases/download/2026-11-15/marksman-2026-02-08-win-arm64.zip"
+        }
+      },
+      {
+        "target": "win_x64",
+        "files": {
+          "marksman.exe": "https://github.com/artempyanykh/marksman/releases/download/2026-02-08/marksman.exe"
+        }
+      }
+    ]
+  },
+  "bin": {
+    "marksman": "marksman.exe"
+  },
+  "neovim": {
+    "lspconfig": "marksman"
+  }
+}
